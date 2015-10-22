@@ -1,0 +1,19 @@
+{
+  "name": "paq-change-of-base-mc",
+  "version": "1.0.0",
+  "description": "Project Awesome Question, Change of Base, Multiple Choice",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/project-awesome/paq-change-of-base-mc.git"
+  },
+  "author": "Phill Conrad <pconrad@cs.ucsb.edu> (https://foo.cs.ucsb.edu/pawiki)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/project-awesome/paq-change-of-base-mc/issues"
+  },
+  "homepage": "https://github.com/project-awesome/paq-change-of-base-mc#readme"
+}
