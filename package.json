@@ -4,7 +4,7 @@
   "description": "Project Awesome Question, Change of Base, Multiple Choice",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "mocha --recursive"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/project-awesome/paq-change-of-base-mc/issues"
   },
-  "homepage": "https://github.com/project-awesome/paq-change-of-base-mc#readme"
+  "homepage": "https://github.com/project-awesome/paq-change-of-base-mc#readme",
+  "devDependencies": {
+    "chai": "^3.4.0",
+    "mocha": "^2.3.3",
+    "sinon": "^1.17.2",
+    "sinon-chai": "^2.8.0",
+    "random": "git+https://git@github.com/project-awesome/pa-random-bits.git"
+  }
 }
