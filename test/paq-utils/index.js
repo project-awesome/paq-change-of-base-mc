@@ -6,17 +6,17 @@ chai.use(sinonChai);
 
 var utils = require('../../paq-utils');
 
-describe('Choices(limit)', function() {
+describe('UniqueChoices(limit)', function() {
 	describe('limit param', function() {
 		describe('when limit is not an integer', function() {
 			it('should set _limit to default 4', function() {
-				var choices = new utils.Choices("ayy");
+				var choices = new utils.UniqueChoices("ayy");
 				expect(choices._limit).to.equal(4);
 			});
 		});
 		describe('when limit is an integer', function() {
 			it('should set _limit to limit', function() {
-				var choices = new utils.Choices(10);
+				var choices = new utils.UniqueChoices(10);
 				expect(choices._limit).to.equal(10);
 			});
 		});
@@ -24,7 +24,7 @@ describe('Choices(limit)', function() {
 	describe("getChoices()", function() {
 		var choices;
 		beforeEach(function() {
-			choices = new utils.Choices(5);
+			choices = new utils.UniqueChoices(5);
 			choices._choices = "choiches-double";
 		});
 		it("should return _choices", function() {
@@ -34,7 +34,7 @@ describe('Choices(limit)', function() {
 	describe('full()', function() {
 		var choices;
 		beforeEach(function() {
-			choices = new utils.Choices(5);
+			choices = new utils.UniqueChoices(5);
 		});
 		describe('when _limit > _choices.length', function() {
 			beforeEach(function() {
@@ -58,7 +58,7 @@ describe('Choices(limit)', function() {
 	describe('addAll(choicesArray)', function() {
 		var choices;
 		beforeEach(function() {
-			choices = new utils.Choices(5);
+			choices = new utils.UniqueChoices(5);
 		});
 		describe('when choicesArray is not an array', function() {
 			it('should throw an error', function() {
@@ -90,13 +90,13 @@ describe('Choices(limit)', function() {
 		var choices, sandbox, choiceDouble;
 		beforeEach(function() {
 			choiceDouble = "choice-double";
-			choices = new utils.Choices(5);
+			choices = new utils.UniqueChoices(5);
 			sandbox = sinon.sandbox.create();
 		});
 		afterEach(function() {
 			sandbox.restore();
 		});
-		describe('when Choices is full', function() {
+		describe('when UniqueChoices is full', function() {
 			var fullStub;
 			beforeEach(function() {
 				fullStub = sandbox.stub(choices, "full").returns(true);
@@ -105,7 +105,7 @@ describe('Choices(limit)', function() {
 				expect(choices.add(choiceDouble)).to.equal(false);
 			});
 		});
-		describe('when Choices is not full', function() {
+		describe('when UniqueChoices is not full', function() {
 			var fullStub;
 			beforeEach(function() {
 				fullStub = sandbox.stub(choices, "full").returns(false);

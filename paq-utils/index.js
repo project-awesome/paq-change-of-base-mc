@@ -1,4 +1,4 @@
-function Choices(limit) {
+function UniqueChoices(limit) {
 	this._limit = (Number.isInteger(limit)) ? limit : 4;
 	this._uniqueChoices = new Set([]);
 	this._choices = [];
@@ -25,4 +25,4 @@ function Choices(limit) {
 	}
 }
 
-module.exports.Choices = Choices;
+module.exports.UniqueChoices = UniqueChoices;
