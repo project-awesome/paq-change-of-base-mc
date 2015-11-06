@@ -1,4 +1,3 @@
-var cobUtils = require("./change-of-base-utils");
 var paqUtils = require("./paq-utils");
 
 module.exports.title = "Change of Base Multiple Choice";
@@ -11,6 +10,24 @@ module.exports.defaultConversions = [
     { radix:{ from: 2, to: 16 }, range:{ min: 0, max: 65535} },
     { radix:{ from: 16, to: 2 }, range:{ min: 0, max: 65535} } 
 ];
+
+module.exports.radixDescription = function (radix, useBase) {
+    if (useBase)
+        return "base " + radix;
+    switch(radix) {
+        case 8: return "octal";
+        case 16: return "hexadecimal";
+        case 2: return "binary";
+        case 10: return "decimal";
+        default: return "base " + radix;
+    }
+}
+
+module.exports.generateQuestionText = function (randomStream, from, fromRad, toRad) {
+    var fromDesc = module.exports.radixDescription(fromRad, randomStream.nextIntRange(2));
+    var toDesc = module.exports.radixDescription(toRad, randomStream.nextIntRange(2));
+    return "Convert " + from + " from " + fromDesc + " to " + toDesc + ".";
+}
 
 module.exports.getDistractorRadices = function(rad) {
 	var distractorRadices = {
@@ -89,7 +106,7 @@ module.exports.generate = function(randomStream, params) {
 	
 	this.choices = choices;
 	this.answer = choices.indexOf(answerAsString);
-	this.question = cobUtils.generateQuestionText(randomStream, from, fromRad, toRad);
+	this.question = module.exports.generateQuestionText(randomStream, from, fromRad, toRad);
 	this.format = 'multiple-choice';
 
 };
