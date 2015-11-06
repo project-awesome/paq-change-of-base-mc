@@ -65,7 +65,8 @@ module.exports.generate = function(randomStream, params) {
     
     var conversion = randomStream.pick(conversions);
 
-    var numToConvert = chooseNumber(randomStream, conversion.range);
+    var numToConvert = randomStream.randIntBetweenInclusive(conversion.range.min,
+															conversion.range.max);
 
     var fromRad = conversion.radix.from;
     var toRad = conversion.radix.to;      
