@@ -8,17 +8,6 @@ var paqChangeOfBaseMC = require("../");
 var paqUtils = require("../paq-utils");
 var random = require('random-bits');
 
-describe("paqChangeOfBaseMC", function() {
-	describe("generate", function() {
-		it('should work', function() {
-			var randomStream = new random.random("abcd1234");
-			var result = new paqChangeOfBaseMC.generate(randomStream);
-			//console.log(result);
-			expect(result).to.eql({"choices":["111101","10011011","1000010010","10001010","11010100"],"answer":4,"question":"Convert 212 from base 10 to base 2.","format":"multiple-choice"});
-		});	
-	});
-});
-
 
 describe("getDistractorRadices(rad)", function() {
 	describe("when rad is 8", function() {
