@@ -4,7 +4,9 @@ var sinonChai = require("sinon-chai");
 var expect = chai.expect;
 chai.use(sinonChai);
 
+var cobUtils = require("../change-of-base-utils");
 var paqChangeOfBaseMC = require("../");
+var paqUtils = require("../paq-utils");
 var random = require('random-bits');
 
 describe("paqChangeOfBaseMC", function() {
@@ -158,9 +160,257 @@ describe("addDistractorChoices(answerChoices, fromRad, toRad, from, numToConvert
 		expect(answerChoicesSpy.withArgs("fromRad-distractors-double").calledOnce).to.be.true;
 	});
 });
+describe("addRandomChoices(randomStream, answerChoices, toRad, min, max)", function() {
+	var answerChoicesMock, randomStreamMock, randIntResultMock;
+	var fullStub, addStub, randIntBetweenInclusiveStub, toStringStub;
+	var toRadDouble, minDouble, maxDouble, toStringReturnDouble;
+	var sandbox;
+	beforeEach(function() {
+		toRadDouble = "toRad-double";
+		minDouble = "min-double";
+		maxDouble = "max-double";
+		toStringReturnDouble = "toString-return-double";
+		randIntResultMock = { toString: function() {} };
+		answerChoicesMock = { full: function(){}, add: function() {} };
+		randomStreamMock = { randIntBetweenInclusive: function() {} };
+		sandbox = sinon.sandbox.create();
+		fullStub = sandbox.stub(answerChoicesMock, "full");
+		addStub = sandbox.stub(answerChoicesMock, "add");
+		randIntBetweenInclusiveStub = sandbox.stub(randomStreamMock, "randIntBetweenInclusive").returns(randIntResultMock);
+		toStringStub = sandbox.stub(randIntResultMock, "toString").returns(toStringReturnDouble);
+	});
+	afterEach(function() {
+		sandbox.restore();
+	});
+	describe("when answerChoices becomes full", function() {
+		beforeEach(function() {
+			fullStub.returns(false);
+			fullStub.onCall(1).returns(true);
+			paqChangeOfBaseMC.addRandomChoices(randomStreamMock, answerChoicesMock, toRadDouble, minDouble, maxDouble);
+		});
+		it("should stop adding choices", function() {
+			expect(fullStub.calledTwice).to.be.true;
+			expect(randIntBetweenInclusiveStub.calledOnce).to.be.true;
+			expect(addStub.calledOnce).to.be.true;
+		});
+	});
+	describe("generating new choice", function() {
+		beforeEach(function() {
+			fullStub.returns(false);
+			fullStub.onCall(1).returns(true);
+			paqChangeOfBaseMC.addRandomChoices(randomStreamMock, answerChoicesMock, toRadDouble, minDouble, maxDouble);
+		});
+		describe("randIntBetweenInclusive", function() {
+			it("should be called with min and max as parameters", function() {
+				expect(randIntBetweenInclusiveStub.calledOnce).to.be.true;
+				expect(randIntBetweenInclusiveStub.calledWith(minDouble, maxDouble)).to.be.true;
+			});
+		});
+		describe("distractor", function() {
+			it("should call toString(toRad)", function() {
+				expect(toStringStub.calledOnce).to.be.true;
+				expect(toStringStub.calledWith(toRadDouble)).to.be.true;
+			});
+		});
+		describe("answerChoices.add", function() {
+			it("should be called with the result of distractor's toString", function() {
+				expect(addStub.calledOnce).to.be.true;
+				expect(addStub.calledWith(toStringReturnDouble)).to.be.true;
+			});
+		});
+	});
+});
+
+describe("getConversion(randomStream, params, defaultValue)", function() {
+	var randomStreamMock, params;
+	var pickStub;
+	var defaultValueDouble;
+	beforeEach(function() {
+		randomStreamMock = { pick: function() {} };
+		defaultValueDouble = "defaultValue-double";
+		pickStub = sinon.stub(randomStreamMock, "pick");
+	});
+	afterEach(function() {
+		pickStub.restore();
+	});
+	describe("when no conversions are specified", function() {
+		beforeEach(function() {
+			params = { conversions: [] };
+		});
+		it("should call call pick with the defaultValue", function() {
+			paqChangeOfBaseMC.getConversion(randomStreamMock, params, defaultValueDouble);
+			expect(pickStub.calledOnce).to.be.true;
+			expect(pickStub.calledWith(defaultValueDouble)).to.be.true;
+		});
+	});
+	describe("when conversions are provided", function() {
+		var conversionsDouble;
+		beforeEach(function() {
+			conversionsDouble = [ "conversions", "double" ];
+			params = { conversions: conversionsDouble };
+		});
+		it("should call call pick with the provided conversions", function() {
+			paqChangeOfBaseMC.getConversion(randomStreamMock, params, defaultValueDouble);
+			expect(pickStub.calledOnce).to.be.true;
+			expect(pickStub.calledWith(conversionsDouble)).to.be.true;
+		});
+	});
+	describe("return value", function() {
+		it("should be the result of randomStream.pick", function() {
+			pickStub.returns("pick-return-double");
+			var returnValue = paqChangeOfBaseMC.getConversion(randomStreamMock, params, defaultValueDouble);
+			expect(returnValue).to.equal("pick-return-double");
+		});
+	});
+});
 
 
 
+// bad giant unit test...
+describe("generate(randomStream, params)", function() {
+	var res;
+	var numToConvertMock, randomStreamMock, answerChoicesMock, choicesMock;
+	var getConversionStub, randIntBetweenInclusiveStub, toStringStub, UniqueChoicesStub,
+		addDistractorChoicesStub, addRandomChoicesStub, shuffleStub, indexOfStub, getChoicesStub,
+		generateQuestionTextStub, addStub;
+	var conversionDouble, fromRadDouble, toRadDouble, minDoube, maxDouble, paramsDouble,
+		fromDouble, answerDouble, indexDouble, questionTextDouble;
+	var sandbox;
+	beforeEach(function() {
+		sandbox = sinon.sandbox.create();
+
+		numToConvertMock = { toString: function() { } };
+		randomStreamMock = { shuffle: function() { }, randIntBetweenInclusive: function() {} };
+		answerChoicesMock = { add: function() { }, getChoices: function() { } };
+		choicesMock = { indexOf: function() {} };
+		fromDouble = sandbox.spy();
+		answerDouble = sandbox.spy();
+		paramsDouble = sandbox.spy();
+		maxDouble = sandbox.spy();
+		minDouble = sandbox.spy();
+		fromRadDouble = sandbox.spy();
+		toRadDouble = sandbox.spy();
+		indexDouble = sandbox.spy();
+		questionTextDouble = sandbox.spy();
+		conversionDouble = {
+			radix: { from: fromRadDouble, to: toRadDouble },
+			range: { min: minDouble, max: maxDouble }
+		}
+
+		getConversionStub = sandbox.stub(paqChangeOfBaseMC, "getConversion").returns(conversionDouble);
+		shuffleStub = sandbox.stub(randomStreamMock, "shuffle");
+		randIntBetweenInclusiveStub = sandbox.stub(randomStreamMock, "randIntBetweenInclusive").returns(numToConvertMock);
+		toStringStub = sandbox.stub(numToConvertMock, "toString")
+			.withArgs(fromRadDouble).returns(fromDouble)
+			.withArgs(toRadDouble).returns(answerDouble);
+		UniqueChoicesStub = sandbox.stub(paqUtils, "UniqueChoices").returns(answerChoicesMock);
+		addStub = sandbox.stub(answerChoicesMock, "add");
+		getChoicesStub = sandbox.stub(answerChoicesMock, "getChoices").returns(choicesMock);
+		addDistractorChoicesStub = sandbox.stub(paqChangeOfBaseMC, "addDistractorChoices");
+		addRandomChoicesStub = sandbox.stub(paqChangeOfBaseMC, "addRandomChoices");
+		indexOfStub = sandbox.stub(choicesMock, "indexOf").returns(indexDouble);
+		generateQuestionTextStub = sandbox.stub(cobUtils, "generateQuestionText").returns(questionTextDouble);
+
+		res = new paqChangeOfBaseMC.generate(randomStreamMock, paramsDouble);
+
+	});
+	afterEach(function() {
+		sandbox.restore();
+	});
+
+	describe("getConversion", function() {
+		it("should be called with appropriate parameters", function() {
+			expect(getConversionStub.calledOnce).to.be.true;
+			expect(getConversionStub.calledWith(
+				randomStreamMock, paramsDouble, paqChangeOfBaseMC.defaultConversions
+			)).to.be.true;
+		});
+	});
+	describe("numToConvert", function() {
+		it("should be selected with randIntBetweenInclusive with min, max from conversion", function() {
+			expect(randIntBetweenInclusiveStub.calledOnce).to.be.true;
+			expect(randIntBetweenInclusiveStub.calledWith(minDouble, maxDouble)).to.be.true;
+		});
+	});
+	describe("number to convert string format", function() {
+		it("should be determined by toString(fromRad) on numToConvert", function() {
+			expect(toStringStub.withArgs(fromRadDouble).calledOnce).to.be.true;
+		});
+	});
+	describe("answer", function() {
+		it("should be determined by toString(toRad) on numToConvert", function() {
+			expect(toStringStub.withArgs(toRadDouble).calledOnce).to.be.true;
+		});
+	});
+	describe("answerChoices", function() {
+		it("should create a new UniqueChoices object with limit of 5", function() {
+			expect(UniqueChoicesStub.calledOnce).to.be.true;
+			expect(UniqueChoicesStub.calledWith(5)).to.be.true;
+		});
+		it("should add the answer", function() {
+			expect(addStub.calledOnce).to.be.true;
+			expect(addStub.calledWith(answerDouble)).to.be.true;
+		});
+	});
+	describe("addDistractorChoices", function() {
+		it("should be called with appropriate parameters", function() {
+			expect(addDistractorChoicesStub.calledOnce).to.be.true;
+			expect(addDistractorChoicesStub.calledWith(
+				answerChoicesMock, fromRadDouble, toRadDouble, fromDouble, numToConvertMock
+			)).to.be.true;
+		});
+	});
+	describe("addRandomChoices", function() {
+		it("should be called with appropriate parameters", function() {
+			expect(addRandomChoicesStub.calledOnce).to.be.true;
+			expect(addRandomChoicesStub.calledWith(
+				randomStreamMock, answerChoicesMock, toRadDouble, minDouble, maxDouble
+			)).to.be.true;
+		});
+	});
+	describe("unique choices result", function() {
+		it("should be the result of answerChoices.getChoices()", function() {
+			expect(getChoicesStub.calledOnce).to.be.true;
+		});
+		it("should be set after the correct, distractor, and random choices were generated", function() {
+			expect(getChoicesStub.calledAfter(addStub)).to.be.true;
+			expect(getChoicesStub.calledAfter(addDistractorChoicesStub)).to.be.true;
+			expect(getChoicesStub.calledAfter(addRandomChoicesStub)).to.be.true;
+		});
+		it("should be shuffled by randomStream's shuffle method", function() {
+			expect(shuffleStub.calledOnce).to.be.true;
+			expect(shuffleStub.calledWith(choicesMock)).to.be.true;
+		});
+	});
+	describe("properties assigned to this", function() {
+		describe("choices", function() {
+			it("should be assigned the shuffled choices", function() {
+				expect(res.choices).to.equal(choicesMock);
+			});
+		});
+		describe("answer", function() {
+			it("should be the index of the correct answer in choices", function() {
+				expect(indexOfStub.withArgs(answerDouble).calledOnce).to.be.true;
+				expect(res.answer).to.equal(indexDouble);
+			});
+		});
+		describe("question", function() {
+			it("should be determined by generateQuestionText(randomStream, from, fromRad, toRad)", function() {
+				expect(generateQuestionTextStub.withArgs(
+					randomStreamMock, fromDouble, fromRadDouble, toRadDouble
+				).calledOnce).to.be.true;
+			});
+			it("should be assigned to result of generateQuestionText", function() {
+				expect(res.question).to.equal(questionTextDouble);
+			});
+		});
+		describe("format", function() {
+			it("should be multiple-choice", function() {
+				expect(res.format).to.equal("multiple-choice");
+			});
+		});
+	});
+});
 
 
 

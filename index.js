@@ -3,7 +3,7 @@ var paqUtils = require("./paq-utils");
 
 module.exports.title = "Change of Base Multiple Choice";
 
-var defaultConversions = [ 
+module.exports.defaultConversions = [ 
     { radix:{ from: 10, to: 2 }, range:{ min: 0, max: 255} },
     { radix:{ from: 2, to: 10 }, range:{ min: 0, max: 255} },
     { radix:{ from: 2, to: 8 }, range:{ min: 0, max: 511 } },
@@ -52,39 +52,35 @@ module.exports.addDistractorChoices = function(answerChoices, fromRad, toRad, fr
 	answerChoices.addAll(module.exports.generateFromRadDistractors(fromRad, toRad, numToConvert, from));
 }
 
+module.exports.addRandomChoices = function(randomStream, answerChoices, toRad, min, max) {
+	while (!answerChoices.full()) {
+		var distractor = randomStream.randIntBetweenInclusive(min, max);
+		answerChoices.add(distractor.toString(toRad));
+	}
+}
+
+module.exports.getConversion = function(randomStream, params, defaultValue) {
+    var conversions = defaultValue;
+    if (params && params.conversions && params.conversions.length > 0)
+    	conversions = params.conversions;
+    return randomStream.pick(conversions);
+}
+
 module.exports.generate = function(randomStream, params) {
-
-    var conversions = (params && params.conversions && params.conversions.length > 0) ? params.conversions : defaultConversions;
-    
-    var conversion = randomStream.pick(conversions);
-
-    var numToConvert = randomStream.randIntBetweenInclusive(conversion.range.min,
-															conversion.range.max);
-
+	
+	var conversion = module.exports.getConversion(randomStream, params, module.exports.defaultConversions);
+    var numToConvert = randomStream.randIntBetweenInclusive(conversion.range.min, conversion.range.max);
     var fromRad = conversion.radix.from;
     var toRad = conversion.radix.to;      
-    
     var from = numToConvert.toString(fromRad);
     
     var answerAsString = numToConvert.toString(toRad);
 
-	//Array of {String, bool} pairs: the string representation of a number in a particular base
-	//and a flag indicating whether or not it is the correct answer.
 	var answerChoices = new paqUtils.UniqueChoices(5);
 	answerChoices.add(answerAsString);
 
-	// If toRad is in distractor radices, try adding the right answer in a wrong radix to the list.
-
 	module.exports.addDistractorChoices(answerChoices, fromRad, toRad, from, numToConvert);
-	
-	while (!answerChoices.full()) {
-
-		var thisDistractorNum = randomStream.randIntBetweenInclusive(conversion.range.min,
-															conversion.range.max);
-
-		var thisDistractorString = thisDistractorNum.toString(toRad);
-		answerChoices.add(thisDistractorString);
-	}
+	module.exports.addRandomChoices(randomStream, answerChoices, toRad, conversion.range.min, conversion.range.max);
 
 	var choices = answerChoices.getChoices();
 	randomStream.shuffle(choices);
