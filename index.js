@@ -12,13 +12,6 @@ var defaultConversions = [
     { radix:{ from: 16, to: 2 }, range:{ min: 0, max: 65535} } 
 ];
 
-function chooseNumber(randomStream, range) {
-	var expression = range.max-range.min + 1;
-	var randomResult = randomStream.nextIntRange(expression);
-	var result = range.min + randomResult;
-	return result;
-}
-
 module.exports.getDistractorRadices = function(rad) {
 	var distractorRadices = {
     	"8" : [10,16],
@@ -85,7 +78,10 @@ module.exports.generate = function(randomStream, params) {
 	module.exports.addDistractorChoices(answerChoices, fromRad, toRad, from, numToConvert);
 	
 	while (!answerChoices.full()) {
-		var thisDistractorNum = chooseNumber(randomStream, conversion.range);
+
+		var thisDistractorNum = randomStream.randIntBetweenInclusive(conversion.range.min,
+															conversion.range.max);
+
 		var thisDistractorString = thisDistractorNum.toString(toRad);
 		answerChoices.add(thisDistractorString);
 	}
