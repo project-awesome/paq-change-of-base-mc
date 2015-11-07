@@ -1,33 +1,7 @@
 var paqUtils = require("./paq-utils");
+var paqChangeOfBaseFR = require("paq-fr-change-of-base");
 
 module.exports.title = "Change of Base Multiple Choice";
-
-module.exports.defaultConversions = [ 
-    { radix:{ from: 10, to: 2 }, range:{ min: 0, max: 255} },
-    { radix:{ from: 2, to: 10 }, range:{ min: 0, max: 255} },
-    { radix:{ from: 2, to: 8 }, range:{ min: 0, max: 511 } },
-    { radix:{ from: 8, to: 2 }, range:{ min: 0, max: 63 } },
-    { radix:{ from: 2, to: 16 }, range:{ min: 0, max: 65535} },
-    { radix:{ from: 16, to: 2 }, range:{ min: 0, max: 65535} } 
-];
-
-module.exports.radixDescription = function (radix, useBase) {
-    if (useBase)
-        return "base " + radix;
-    switch(radix) {
-        case 8: return "octal";
-        case 16: return "hexadecimal";
-        case 2: return "binary";
-        case 10: return "decimal";
-        default: return "base " + radix;
-    }
-}
-
-module.exports.generateQuestionText = function (randomStream, from, fromRad, toRad) {
-    var fromDesc = module.exports.radixDescription(fromRad, randomStream.nextIntRange(2));
-    var toDesc = module.exports.radixDescription(toRad, randomStream.nextIntRange(2));
-    return "Convert " + from + " from " + fromDesc + " to " + toDesc + ".";
-}
 
 module.exports.getDistractorRadices = function(rad) {
 	var distractorRadices = {
@@ -76,16 +50,8 @@ module.exports.addRandomChoices = function(randomStream, answerChoices, toRad, m
 	}
 }
 
-module.exports.getConversion = function(randomStream, params, defaultValue) {
-    var conversions = defaultValue;
-    if (params && params.conversions && params.conversions.length > 0)
-    	conversions = params.conversions;
-    return randomStream.pick(conversions);
-}
-
 module.exports.generate = function(randomStream, params) {
-	
-	var conversion = module.exports.getConversion(randomStream, params, module.exports.defaultConversions);
+	var conversion = paqChangeOfBaseFR.getConversion(randomStream, params, paqChangeOfBaseFR.defaultConversions);
     var numToConvert = randomStream.randIntBetweenInclusive(conversion.range.min, conversion.range.max);
     var fromRad = conversion.radix.from;
     var toRad = conversion.radix.to;      
@@ -103,18 +69,14 @@ module.exports.generate = function(randomStream, params) {
 	randomStream.shuffle(choices);
 
 	//Find the correct answer
-	
-	this.choices = choices;
-	this.answer = choices.indexOf(answerAsString);
-	this.question = module.exports.generateQuestionText(randomStream, from, fromRad, toRad);
-	this.format = 'multiple-choice';
-
+	var question = {};
+	question.choices = choices;
+	question.answer = choices.indexOf(answerAsString);
+	question.question = paqChangeOfBaseFR.generateQuestionText(randomStream, from, fromRad, toRad);
+	question.format = 'multiple-choice';
+	return question;
 };
 
 
 
-module.exports.validateParameters = function(params) {
-	if (params === undefined) return [];
-	if (typeof params !== 'object') return [{ type: 'NonObjectParameters', path: []}];
-    return [];
-}
+module.exports.validateParameters = paqChangeOfBaseFR.validateParameters;

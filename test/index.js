@@ -5,8 +5,8 @@ var expect = chai.expect;
 chai.use(sinonChai);
 
 var paqChangeOfBaseMC = require("../");
+var paqChangeOfBaseFR = require("paq-fr-change-of-base");
 var paqUtils = require("../paq-utils");
-var random = require('random-bits');
 
 
 describe("getDistractorRadices(rad)", function() {
@@ -209,49 +209,6 @@ describe("addRandomChoices(randomStream, answerChoices, toRad, min, max)", funct
 	});
 });
 
-describe("getConversion(randomStream, params, defaultValue)", function() {
-	var randomStreamMock, params;
-	var pickStub;
-	var defaultValueDouble;
-	beforeEach(function() {
-		randomStreamMock = { pick: function() {} };
-		defaultValueDouble = "defaultValue-double";
-		pickStub = sinon.stub(randomStreamMock, "pick");
-	});
-	afterEach(function() {
-		pickStub.restore();
-	});
-	describe("when no conversions are specified", function() {
-		beforeEach(function() {
-			params = { conversions: [] };
-		});
-		it("should call call pick with the defaultValue", function() {
-			paqChangeOfBaseMC.getConversion(randomStreamMock, params, defaultValueDouble);
-			expect(pickStub.calledOnce).to.be.true;
-			expect(pickStub.calledWith(defaultValueDouble)).to.be.true;
-		});
-	});
-	describe("when conversions are provided", function() {
-		var conversionsDouble;
-		beforeEach(function() {
-			conversionsDouble = [ "conversions", "double" ];
-			params = { conversions: conversionsDouble };
-		});
-		it("should call call pick with the provided conversions", function() {
-			paqChangeOfBaseMC.getConversion(randomStreamMock, params, defaultValueDouble);
-			expect(pickStub.calledOnce).to.be.true;
-			expect(pickStub.calledWith(conversionsDouble)).to.be.true;
-		});
-	});
-	describe("return value", function() {
-		it("should be the result of randomStream.pick", function() {
-			pickStub.returns("pick-return-double");
-			var returnValue = paqChangeOfBaseMC.getConversion(randomStreamMock, params, defaultValueDouble);
-			expect(returnValue).to.equal("pick-return-double");
-		});
-	});
-});
-
 
 
 // bad giant unit test...
@@ -285,7 +242,7 @@ describe("generate(randomStream, params)", function() {
 			range: { min: minDouble, max: maxDouble }
 		}
 
-		getConversionStub = sandbox.stub(paqChangeOfBaseMC, "getConversion").returns(conversionDouble);
+		getConversionStub = sandbox.stub(paqChangeOfBaseFR, "getConversion").returns(conversionDouble);
 		shuffleStub = sandbox.stub(randomStreamMock, "shuffle");
 		randIntBetweenInclusiveStub = sandbox.stub(randomStreamMock, "randIntBetweenInclusive").returns(numToConvertMock);
 		toStringStub = sandbox.stub(numToConvertMock, "toString")
@@ -297,9 +254,9 @@ describe("generate(randomStream, params)", function() {
 		addDistractorChoicesStub = sandbox.stub(paqChangeOfBaseMC, "addDistractorChoices");
 		addRandomChoicesStub = sandbox.stub(paqChangeOfBaseMC, "addRandomChoices");
 		indexOfStub = sandbox.stub(choicesMock, "indexOf").returns(indexDouble);
-		generateQuestionTextStub = sandbox.stub(paqChangeOfBaseMC, "generateQuestionText").returns(questionTextDouble);
+		generateQuestionTextStub = sandbox.stub(paqChangeOfBaseFR, "generateQuestionText").returns(questionTextDouble);
 
-		res = new paqChangeOfBaseMC.generate(randomStreamMock, paramsDouble);
+		res = paqChangeOfBaseMC.generate(randomStreamMock, paramsDouble);
 
 	});
 	afterEach(function() {
@@ -310,7 +267,7 @@ describe("generate(randomStream, params)", function() {
 		it("should be called with appropriate parameters", function() {
 			expect(getConversionStub.calledOnce).to.be.true;
 			expect(getConversionStub.calledWith(
-				randomStreamMock, paramsDouble, paqChangeOfBaseMC.defaultConversions
+				randomStreamMock, paramsDouble, paqChangeOfBaseFR.defaultConversions
 			)).to.be.true;
 		});
 	});
@@ -399,88 +356,6 @@ describe("generate(randomStream, params)", function() {
 		});
 	});
 });
-
-describe('radixDescription(radix, useBase)', function() {
-	describe('when useBase is true and radix is  8', function() {
-		it('should return "base 8"', function() {
-			expect(paqChangeOfBaseMC.radixDescription(8, true)).to.equal("base 8");
-		});
-	});
-	describe('when useBase is false', function() {
-		describe('when radix is 2', function() {
-			it('should return "binary"', function() {
-				expect(paqChangeOfBaseMC.radixDescription(2, false)).to.equal("binary");
-			});
-		});
-		describe('when radix is 8', function() {
-			it('should return "octal"', function() {
-				expect(paqChangeOfBaseMC.radixDescription(8, false)).to.equal("octal");
-			});
-		});
-		describe('when radix is 16', function() {
-			it('should return "hexadecimal"', function() {
-				expect(paqChangeOfBaseMC.radixDescription(16, false)).to.equal("hexadecimal");
-			});
-		});
-		describe('when radix is 10', function() {
-			it('should return "decimal"', function() {
-				expect(paqChangeOfBaseMC.radixDescription(10, false)).to.equal("decimal");
-			});
-		});
-		describe('when radix is 5', function() {
-			it('should return "base 5"', function() {
-				expect(paqChangeOfBaseMC.radixDescription(5, false)).to.equal("base 5");
-			});
-		});
-	});
-});
-
-describe("generateQuestionText(randomStream, from, fromRad, toRad)", function() {
-	var res;
-	var randomStreamMock;
-	var nextIntRangeStub, radixDescriptionStub;
-	var fromDouble, fromRadDouble, toRadDouble;
-	beforeEach(function() {
-		randomStreamMock = {
-			nextIntRange: function() {}
-		}
-		fromDouble = "from-double";
-		fromRadDouble = "fromRad-double";
-		toRadDouble = "toRad-double";
-		nextIntRangeStub = sinon.stub(randomStreamMock, "nextIntRange");
-		nextIntRangeStub.withArgs(2)
-		.onFirstCall().returns("first-nextInt-double")
-		.onSecondCall().returns("second-nextInt-double");
-
-		radixDescriptionStub = sinon.stub(paqChangeOfBaseMC, "radixDescription");
-		radixDescriptionStub.withArgs(fromRadDouble, "first-nextInt-double").returns("from-description-double")
-		.withArgs(toRadDouble, "second-nextInt-double").returns("to-description-double");
-
-
-		res = paqChangeOfBaseMC.generateQuestionText(randomStreamMock, fromDouble, fromRadDouble, toRadDouble);
-	});
-	afterEach(function() {
-		nextIntRangeStub.restore();
-		radixDescriptionStub.restore();
-	});
-
-	it('should call randomStream.nextIntRange with argument 2, twice', function() {
-		expect(nextIntRangeStub.calledTwice).to.be.true;
-	});
-
-	it('should produce the random description for fromRad', function() {
-		expect(radixDescriptionStub.withArgs(fromRadDouble, "first-nextInt-double").calledOnce).to.be.true;
-	});
-
-	it('should produce the random description for toRad', function() {
-		expect(radixDescriptionStub.withArgs(toRadDouble, "second-nextInt-double").calledOnce).to.be.true;
-	});
-
-	it('should return the question text with appropriate radix formats', function() {
-		expect(res).to.equal("Convert " + fromDouble + " from from-description-double to to-description-double.");
-	});
-});
-
 
 
 

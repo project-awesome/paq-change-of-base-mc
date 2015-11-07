@@ -21,6 +21,6 @@
     "mocha": "^2.3.3",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0",
-    "random": "git+https://git@github.com/project-awesome/pa-random-bits.git#v1.0.0"
+    "paq-fr-change-of-base": "git+https://git@github.com/project-awesome/paq-fr-change-of-base.git"
   }
 }
