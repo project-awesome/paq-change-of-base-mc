@@ -7,7 +7,7 @@ chai.use(sinonChai);
 var utils = require('../../paq-utils');
 
 describe('UniqueChoices(limit)', function() {
-	describe('limit param', function() {
+	describe('_limit', function() {
 		describe('when limit is not an integer', function() {
 			it('should set _limit to default 4', function() {
 				var choices = new utils.UniqueChoices("ayy");
@@ -21,14 +21,23 @@ describe('UniqueChoices(limit)', function() {
 			});
 		});
 	});
+	describe("_choices", function() {
+		it("should be of type Set", function() {
+			var choices = new utils.UniqueChoices();
+			expect(choices._choices).to.be.a("set");
+		});
+	});
 	describe("getChoices()", function() {
 		var choices;
 		beforeEach(function() {
 			choices = new utils.UniqueChoices(5);
-			choices._choices = "choiches-double";
+			choices.add("double-one");
+			choices.add("double-two");
 		});
-		it("should return _choices", function() {
-			expect(choices.getChoices()).to.equal("choiches-double");
+		it("should return an array of the choices", function() {
+			var res = choices.getChoices();
+			expect(res).to.be.an("array");
+			expect(res).to.eql(["double-one", "double-two"]);
 		});
 	})
 	describe('full()', function() {
@@ -36,22 +45,60 @@ describe('UniqueChoices(limit)', function() {
 		beforeEach(function() {
 			choices = new utils.UniqueChoices(5);
 		});
-		describe('when _limit > _choices.length', function() {
+		describe('when _limit > _choices.size', function() {
 			beforeEach(function() {
-				choices._choices = ["one", "two"];
+				choices._choices = new Set(["one", "two"]);
 				choices._limit = 3;
 			});
 			it('should return false', function() {
 				expect(choices.full()).to.be.false;
 			});
 		});
-		describe('when _limit = _choices.length', function() {
+		describe('when _limit = _choices.size', function() {
 			beforeEach(function() {
-				choices._choices = ["one", "two"];
+				choices._choices = new Set(["one", "two"]);
 				choices._limit = 2;
 			});
 			it('should return true', function() {
 				expect(choices.full()).to.be.true;
+			});
+		});
+	});
+	describe('add(choice)', function() {
+		var choices, sandbox, choiceDouble;
+		beforeEach(function() {
+			choiceDouble = "choice-double";
+			choices = new utils.UniqueChoices(5);
+			sandbox = sinon.sandbox.create();
+		});
+		afterEach(function() {
+			sandbox.restore();
+		});
+		describe('when UniqueChoices is full', function() {
+			var fullStub;
+			beforeEach(function() {
+				fullStub = sandbox.stub(choices, "full").returns(true);
+			});
+			it ('should return false', function() {
+				expect(choices.add(choiceDouble)).to.equal(false);
+			});
+		});
+		describe('when UniqueChoices is not full', function() {
+			var fullStub, _choicesAddStub;
+			beforeEach(function() {
+				fullStub = sandbox.stub(choices, "full").returns(false);
+				_choicesAddStub = sandbox.stub(choices._choices, "add");
+			});
+			afterEach(function() {
+				sandbox.restore();
+			});
+			it('should add choice to _choices', function() {
+				choices.add(choiceDouble);
+				expect(_choicesAddStub.calledWith(choiceDouble)).to.be.true;
+			});
+			it('should return the result of _choices.add', function() {
+				_choicesAddStub.returns("add-return-double");
+				expect(choices.add(choiceDouble)).to.equal("add-return-double");
 			});
 		});
 	});
@@ -82,64 +129,6 @@ describe('UniqueChoices(limit)', function() {
 				it('should stop calling add()', function() {
 					choices.addAll(['first', 'second', 'third', 'fourth', 'fifth', 'sixth']);
 					expect(addSpy.callCount).to.equal(5);
-				});
-			});
-		});
-	});
-	describe('add(choice)', function() {
-		var choices, sandbox, choiceDouble;
-		beforeEach(function() {
-			choiceDouble = "choice-double";
-			choices = new utils.UniqueChoices(5);
-			sandbox = sinon.sandbox.create();
-		});
-		afterEach(function() {
-			sandbox.restore();
-		});
-		describe('when UniqueChoices is full', function() {
-			var fullStub;
-			beforeEach(function() {
-				fullStub = sandbox.stub(choices, "full").returns(true);
-			});
-			it ('should return false', function() {
-				expect(choices.add(choiceDouble)).to.equal(false);
-			});
-		});
-		describe('when UniqueChoices is not full', function() {
-			var fullStub;
-			beforeEach(function() {
-				fullStub = sandbox.stub(choices, "full").returns(false);
-			});
-			describe('when choice is not unique', function() {
-				var _uniqueChoicesHasStub;
-				beforeEach(function() {
-					_uniqueChoicesHasStub = sandbox.stub(choices._uniqueChoices, "has").returns(true);
-				});
-				it('should call _uniqueChoices.has with given choice', function() {
-					choices.add(choiceDouble);
-					expect(_uniqueChoicesHasStub.calledWith(choiceDouble)).to.be.true;
-				});
-				it('should return false', function() {
-					expect(choices.add(choiceDouble)).to.equal(false);
-				});
-			});
-			describe('when choice is unique', function() {
-				var _uniqueChoicesHasStub, _uniqueChoicesAddStub, _choicesPushStub;
-				beforeEach(function() {
-					_uniqueChoicesHasStub = sandbox.stub(choices._uniqueChoices, "has").returns(false);
-					_uniqueChoicesAddStub = sandbox.stub(choices._uniqueChoices, "add");
-					_choicesPushStub = sandbox.stub(choices._choices, "push");
-				});
-				it('should add choice to _uniqueChoices', function() {
-					choices.add(choiceDouble);
-					expect(_uniqueChoicesAddStub.calledWith(choiceDouble)).to.be.true;
-				});
-				it('should add choice to _choices', function() {
-					choices.add(choiceDouble);
-					expect(_choicesPushStub.calledWith(choiceDouble)).to.be.true;
-				});
-				it('should return true', function() {
-					expect(choices.add(choiceDouble)).to.equal(true);
 				});
 			});
 		});
