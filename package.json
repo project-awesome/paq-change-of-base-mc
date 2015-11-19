@@ -16,11 +16,12 @@
     "url": "https://github.com/project-awesome/paq-change-of-base-mc/issues"
   },
   "homepage": "https://github.com/project-awesome/paq-change-of-base-mc#readme",
+  "dependencies": {
+    "paq-fr-change-of-base": "git+https://git@github.com/project-awesome/paq-fr-change-of-base.git"
+  },
   "devDependencies": {
     "chai": "^3.4.0",
     "mocha": "^2.3.3",
-    "sinon": "^1.17.2",
-    "sinon-chai": "^2.8.0",
-    "paq-fr-change-of-base": "git+https://git@github.com/project-awesome/paq-fr-change-of-base.git"
+    "sinon": "^1.17.2"
   }
 }

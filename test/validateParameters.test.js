@@ -1,6 +1,7 @@
 var expect = require("chai").expect;
-var paqChangeOfBaseMC = require("../");
-var paqChangeOfBaseFR = require("paq-fr-change-of-base");
+
+var paqChangeOfBaseMC = require("../"),
+	paqChangeOfBaseFR = require("paq-fr-change-of-base");
 
 describe("validateParameters(parameters)", function() {
 	it("should be the same as the free response change of base function", function() {
