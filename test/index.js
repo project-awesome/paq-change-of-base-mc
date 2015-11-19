@@ -33,6 +33,34 @@ describe("getDistractorRadices(rad)", function() {
 	});
 });
 
+describe("formatChoices(choices, fromRad, toRad, spaceBinary)", function() {
+	var formatAnswerStub, choices;
+	beforeEach(function() {
+		formatAnswerStub = sinon.stub(paqChangeOfBaseFR, 'formatAnswer');
+		choices = ['choice1', 'choice2'];
+	});
+	afterEach(function() {
+		formatAnswerStub.restore();
+	});
+	describe("when spaceBinary is true", function() {
+		it("should format each of the choices using formatAnswer", function() {
+			formatAnswerStub
+			.returns('should not be returned')
+			.withArgs('choice1', 'fromRad-double', 'toRad-double').returns('newchoice1')
+			.withArgs('choice2', 'fromRad-double', 'toRad-double').returns('newchoice2');
+			paqChangeOfBaseMC.formatChoices(choices, 'fromRad-double', 'toRad-double', true);
+			expect(choices).to.eql(['newchoice1', 'newchoice2']);
+		});
+	});
+	describe("when spaceBinary is false", function() {
+		it("should not format the answers", function() {
+			paqChangeOfBaseMC.formatChoices(choices, 'fromRad-double', 'toRad-double', false);
+			expect(formatAnswerStub.called).to.be.false;
+			expect(choices).to.eql(choices);
+		});
+	});
+});
+
 describe("generateToRadDistractors(toRad, numToConvert)", function() {
 	var getDistractorRadicesStub, toStringStub;
 	var getDistractorRadicesReturnDouble;
@@ -217,10 +245,11 @@ describe("generate(randomStream, params)", function() {
 	var numToConvertMock, randomStreamMock, answerChoicesMock, choicesMock;
 	var getConversionStub, randIntBetweenInclusiveStub, toStringStub, UniqueChoicesStub,
 		addDistractorChoicesStub, addRandomChoicesStub, shuffleStub, indexOfStub, getChoicesStub,
-		generateQuestionTextStub, addStub;
+		generateQuestionTextStub, addStub, getSpaceBinaryStub, formatChoicesStub;
 	var conversionDouble, fromRadDouble, toRadDouble, minDoube, maxDouble, paramsDouble,
-		fromDouble, answerDouble, indexDouble, questionTextDouble;
+		fromDouble, answerDouble, indexDouble, questionTextDouble, spaceBinaryDouble;
 	var sandbox;
+
 	beforeEach(function() {
 		sandbox = sinon.sandbox.create();
 
@@ -236,6 +265,7 @@ describe("generate(randomStream, params)", function() {
 		fromRadDouble = sandbox.spy();
 		toRadDouble = sandbox.spy();
 		indexDouble = sandbox.spy();
+		spaceBinaryDouble  = sandbox.spy();
 		questionTextDouble = sandbox.spy();
 		conversionDouble = {
 			radix: { from: fromRadDouble, to: toRadDouble },
@@ -255,7 +285,8 @@ describe("generate(randomStream, params)", function() {
 		addRandomChoicesStub = sandbox.stub(paqChangeOfBaseMC, "addRandomChoices");
 		indexOfStub = sandbox.stub(choicesMock, "indexOf").returns(indexDouble);
 		generateQuestionTextStub = sandbox.stub(paqChangeOfBaseFR, "generateQuestionText").returns(questionTextDouble);
-
+		getSpaceBinaryStub = sandbox.stub(paqChangeOfBaseFR, 'getSpaceBinary').withArgs(paramsDouble).returns(spaceBinaryDouble);
+		formatChoicesStub = sandbox.stub(paqChangeOfBaseMC, 'formatChoices');
 		res = paqChangeOfBaseMC.generate(randomStreamMock, paramsDouble);
 
 	});
@@ -332,6 +363,11 @@ describe("generate(randomStream, params)", function() {
 			it("should be assigned the shuffled choices", function() {
 				expect(res.choices).to.equal(choicesMock);
 			});
+			it("should have formatted the choices after the answer index was set", function() {
+				expect(formatChoicesStub.calledOnce).to.be.true;
+				expect(formatChoicesStub.calledAfter(indexOfStub)).to.be.true;
+				expect(formatChoicesStub.calledWith(choicesMock, fromRadDouble, toRadDouble, spaceBinaryDouble)).to.be.true;
+			});
 		});
 		describe("answer", function() {
 			it("should be the index of the correct answer in choices", function() {
@@ -342,7 +378,7 @@ describe("generate(randomStream, params)", function() {
 		describe("question", function() {
 			it("should be determined by generateQuestionText(randomStream, from, fromRad, toRad)", function() {
 				expect(generateQuestionTextStub.withArgs(
-					randomStreamMock, fromDouble, fromRadDouble, toRadDouble
+					randomStreamMock, fromDouble, fromRadDouble, toRadDouble, spaceBinaryDouble
 				).calledOnce).to.be.true;
 			});
 			it("should be assigned to result of generateQuestionText", function() {

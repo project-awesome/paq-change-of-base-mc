@@ -50,9 +50,17 @@ module.exports.addRandomChoices = function(randomStream, answerChoices, toRad, m
 	}
 }
 
+module.exports.formatChoices = function(choices, fromRad, toRad, spaceBinary) {
+	if (!spaceBinary) return;
+	choices.forEach(function(choice, i, arr) {
+		arr[i] = paqChangeOfBaseFR.formatAnswer(choice, fromRad, toRad);
+	});
+}
+
 module.exports.generate = function(randomStream, params) {
 	var conversion = paqChangeOfBaseFR.getConversion(randomStream, params, paqChangeOfBaseFR.defaultConversions);
     var numToConvert = randomStream.randIntBetweenInclusive(conversion.range.min, conversion.range.max);
+    var spaceBinary = paqChangeOfBaseFR.getSpaceBinary(params);
     var fromRad = conversion.radix.from;
     var toRad = conversion.radix.to;      
     var from = numToConvert.toString(fromRad);
@@ -72,8 +80,9 @@ module.exports.generate = function(randomStream, params) {
 	var question = {};
 	question.choices = choices;
 	question.answer = choices.indexOf(answerAsString);
-	question.question = paqChangeOfBaseFR.generateQuestionText(randomStream, from, fromRad, toRad);
+	question.question = paqChangeOfBaseFR.generateQuestionText(randomStream, from, fromRad, toRad, spaceBinary);
 	question.format = 'multiple-choice';
+	module.exports.formatChoices(question.choices, fromRad, toRad, spaceBinary);
 	return question;
 };
 
