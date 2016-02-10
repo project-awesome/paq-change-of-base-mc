@@ -115,6 +115,7 @@ describe("generate(randomStream, params)", function() {
 		it("should be the result of answerChoices.getChoices()", function() {
 			expect(getChoicesStub.calledOnce).to.be.true;
 		});
+		
 		it("should be set after the correct, distractor, and random choices were generated", function() {
 			expect(getChoicesStub.calledAfter(addStub)).to.be.true;
 			expect(getChoicesStub.calledAfter(addDistractorChoicesStub)).to.be.true;
@@ -157,5 +158,11 @@ describe("generate(randomStream, params)", function() {
 				expect(res.format).to.equal("multiple-choice");
 			});
 		});
+		
+		describe("title", function() {
+ 			it("should be the module.exports.title", function() {
+ 				expect(res.title).to.equal("Change of Base Multiple Choice");
+ 			});
+ 		});
 	});
 });
