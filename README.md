@@ -7,3 +7,5 @@ To test this code:
 * git clone this repo
 * npm install
 * npm test
+* 
+Enjoy!
