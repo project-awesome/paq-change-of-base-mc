@@ -82,6 +82,7 @@ module.exports.generate = function(randomStream, params) {
 	question.answer = choices.indexOf(answerAsString);
 	question.question = paqChangeOfBaseFR.generateQuestionText(randomStream, from, fromRad, toRad, spaceBinary);
 	question.format = 'multiple-choice';
+	question.title = module.exports.title;
 	module.exports.formatChoices(question.choices, fromRad, toRad, spaceBinary);
 	return question;
 };
