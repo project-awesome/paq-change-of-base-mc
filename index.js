@@ -4,6 +4,7 @@ var paqChangeOfBaseFR = require("paq-fr-change-of-base");
 exports.title = "Change of Base Multiple Choice";
 
 exports.paramSchema = paqChangeOfBaseFR.paramSchema;
+exports.paramSchema.title = 'mc-change-of-base';
 
 exports.getDistractorRadices = function(rad) {
 	var distractorRadices = {
