@@ -60,32 +60,56 @@ exports.formatChoices = function(choices, fromRad, toRad, spaceBinary) {
 	});
 }
 
-exports.generate = function(randomStream, params) {
-	var conversion = paqChangeOfBaseFR.getConversion(randomStream, params, paqChangeOfBaseFR.defaultConversions);
-    var numToConvert = randomStream.randIntBetweenInclusive(conversion.range.min, conversion.range.max);
-    var spaceBinary = paqChangeOfBaseFR.getSpaceBinary(params);
+
+exports.generateQInputs = function(randomStream, params) {
+    var conversion = paqChangeOfBaseFR.getConversion(randomStream, params, paqChangeOfBaseFR.defaultConversions);
+
     var fromRad = conversion.radix.from;
-    var toRad = conversion.radix.to;      
-    var from = numToConvert.toString(fromRad);
+    var toRad = conversion.radix.to;
+    var qInputs = {
+	"conversion" : conversion,
+	"spaceBinary" : paqChangeOfBaseFR.getSpaceBinary(params),
+        "numToConvert" : randomStream.randIntBetweenInclusive(conversion.range.min, conversion.range.max),
+	"fromRad" : fromRad,
+	"toRad" : toRad,
+	"fromDesc" :  paqChangeOfBaseFR.radixDescription( fromRad , true ),  /* FIX ME!!! true/false should be random */
+	"toDesc" : paqChangeOfBaseFR.radixDescription( toRad ,  true)        /* FIX ME!!! true should not be hard coded */
+    };
+    return qInputs;
+}
+
+exports.generate = function(randomStream, params) {
+
+    var qInputs = exports.generateQInputs(randomStream, params);
+
     
-    var answerAsString = numToConvert.toString(toRad);
+    var from = qInputs.numToConvert.toString(qInputs.fromRad);
+    var answerAsString = qInputs.numToConvert.toString(qInputs.toRad);
+    var answerChoices = new paqUtils.UniqueChoices(5);
+    answerChoices.add(answerAsString);
 
-	var answerChoices = new paqUtils.UniqueChoices(5);
-	answerChoices.add(answerAsString);
+    exports.addDistractorChoices(answerChoices, qInputs.fromRad, qInputs.toRad, from, qInputs.numToConvert);
 
-	exports.addDistractorChoices(answerChoices, fromRad, toRad, from, numToConvert);
-	exports.addRandomChoices(randomStream, answerChoices, toRad, conversion.range.min, conversion.range.max);
-
-	var choices = answerChoices.getChoices();
-	randomStream.shuffle(choices);
-
-	//Find the correct answer
-	var question = {};
-	question.choices = choices;
-	question.answer = choices.indexOf(answerAsString);
-	question.question = paqChangeOfBaseFR.generateQuestionText(randomStream, from, fromRad, toRad, spaceBinary);
-	question.format = 'multiple-choice';
-	question.title = exports.title;
-	exports.formatChoices(question.choices, fromRad, toRad, spaceBinary);
-	return question;
+    // TODO: In the new architecture all random choices are supposed to be made inside
+    //  generate qInputs, but that's not happening here.  This needs to be fixed.
+    //  the addDistractorChoices and addRandomChoices need to be rethought.
+    
+    exports.addRandomChoices(randomStream,
+			     answerChoices,
+			     qInputs.toRad,
+			     qInputs.conversion.range.min,
+			     qInputs.conversion.range.max);
+    
+    var choices = answerChoices.getChoices();
+    randomStream.shuffle(choices);
+    
+    //Find the correct answer
+    var question = {};
+    question.question = paqChangeOfBaseFR.generateQuestionText(qInputs);
+    question.choices = choices;
+    question.answer = choices.indexOf(answerAsString);
+    question.format = 'multiple-choice';
+    question.title = exports.title;
+    exports.formatChoices(question.choices, qInputs.fromRad, qInputs.toRad, paqChangeOfBaseFR.spaceBinary);
+    return question;
 };
